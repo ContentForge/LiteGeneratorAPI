@@ -130,6 +130,7 @@ namespace GEN_API {
         float offsetY;
         int perm[512];
 
+    public:
         Simplex(Random *random, int octaves, float persistence, float expansion) : Noise(octaves, persistence, expansion) {
             offsetX = random->nextFloat() * 256;
             offsetY = random->nextFloat() * 256;
