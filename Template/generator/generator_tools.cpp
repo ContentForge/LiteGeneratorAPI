@@ -1,6 +1,40 @@
-#include "custom_generator.h"
+#include "generator_tools.h"
 
 #define m_t4(val) (val * val * val * val)
+
+int GEN_API::ChunkManager::getDimentionId() {
+    return 0;
+}
+
+short GEN_API::ChunkManager::getMinY() {
+    return 0;
+}
+
+short GEN_API::ChunkManager::getMaxY() {
+    return 383;
+}
+
+Block const& GEN_API::ChunkManager::setBlockAt(int x, int y, int z, Block const* block) {
+    ChunkBlockPos pos(G2L_COORD(x), y, G2L_COORD(z));
+    levelChunk->setBlockSimple(pos, *block);
+    return levelChunk->getBlock(pos);
+}
+
+Block const& GEN_API::ChunkManager::getBlockAt(int x, int y, int z) {
+    return levelChunk->getBlock(ChunkBlockPos(G2L_COORD(x), y, G2L_COORD(z)));
+}
+
+void GEN_API::ChunkManager::setBiomeAt(int x, int z, Biome* biome) {
+    levelChunk->setBiome2d(*biome, ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
+}
+
+Biome const& GEN_API::ChunkManager::getBiomeAt(int x, int z) {
+    return levelChunk->getBiome(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
+}
+
+int GEN_API::ChunkManager::getHighestBlockAt(int x, int z) {
+    return levelChunk->getTopRainBlockPos(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z))).y;
+}
 
 void GEN_API::Random::setSeed(int newSeed) {
     seed = newSeed;

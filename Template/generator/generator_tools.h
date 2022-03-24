@@ -1,6 +1,14 @@
 #pragma once
 
-#include <cmath>
+#include <MC/Block.hpp>
+#include <MC/VanillaBlocks.hpp>
+#include <MC/VanillaDimensions.hpp>
+#include <MC/VanillaBiomes.hpp>
+#include <MC/BlockVolume.hpp>
+#include <MC/Level.hpp>
+#include <MC/LevelChunk.hpp>
+#include <MC/ChunkBlockPos.hpp>
+#include <MC/OverworldGenerator.hpp>
 
 #define C2G_COORD(chunkCoord) (chunkCoord << 4)
 #define G2C_COORD(coord) (coord >> 4)
@@ -24,30 +32,36 @@
 
 
 namespace GEN_API {
-    class IChunkManager {
+    class ChunkManager {
+    private:
+        LevelChunk* levelChunk;
+        ChunkPos* chunkPos;
 
-        //Минимальная высота мира
-        virtual int getMinY();
+    public:
+        ChunkManager(LevelChunk& levelChunk, ChunkPos const& chunkPos) {
+            this->levelChunk = &levelChunk;
+            this->chunkPos = new ChunkPos(chunkPos.x, chunkPos.z);
+        }
 
-        //Максимальная высота мира
-        virtual int getMaxY();
+        ~ChunkManager() {
+            delete chunkPos;
+        }
 
-        //TODO: заменить void в некоторых функциях на подходящие типы
+        int getDimentionId();
 
-        //Установить блок на координаты
-        virtual void setBlockAt(int x, int y, int z, int blockId);
+        short getMinY();
 
-        //Получить блок по координатам
-        virtual void getBlockAt(int x, int y, int z);
+        short getMaxY();
 
-        //Получить наивысшую точку
-        virtual void getHighestBlockAt(int x, int y);
+        Block const& setBlockAt(int x, int y, int z, Block const* block);
 
-        //Установить биом
-        virtual void setBiomeAt(int x, int z, int biomeId);
+        Block const& getBlockAt(int x, int y, int z);
 
-        //Получить биом
-        virtual int getBiomeAt(int x, int z);
+        int getHighestBlockAt(int x, int z);
+
+        void setBiomeAt(int x, int z, Biome* biome);
+
+        Biome const& getBiomeAt(int x, int z);
     };
 
     class Random {
@@ -170,13 +184,20 @@ namespace GEN_API {
             delete random;
         }
 
-        Random* getRandom() {
+        int getSeed() const {
+            return seed;
+        }
+
+        GEN_API::Random* getRandom() {
             return random;
         }
 
-        virtual void generateChunk(IChunkManager* world, int chunkX, int chunkZ);
+        virtual void generateChunk(GEN_API::ChunkManager const& world, int chunkX, int chunkZ) {
 
-        virtual void populateChunk(IChunkManager* world, int chunkX, int chunkZ);
+        }
+
+        virtual void populateChunk(GEN_API::ChunkManager const& world, int chunkX, int chunkZ) {
+
+        }
     };
-
 }
