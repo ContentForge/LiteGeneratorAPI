@@ -36,6 +36,13 @@ TClasslessInstanceHook(bool, "?postProcess@OverworldGenerator@@UEAA_NAEAVChunkVi
     return true;
 }
 
+//Отключение постпроцессинга стандартного генератора
+TClasslessInstanceHook(void, "?_prepareStructureBlueprints@OverworldGenerator@@AEAAXAEBVChunkPos@@AEBVBiomeSource@@AEBVIPreliminarySurfaceProvider@@@Z",
+                       ChunkPos const& chunkPos,
+                       class BiomeSource const& biomeSource,
+                       class IPreliminarySurfaceProvider const& wtfProvider) {
+}
+
 //Генератор ландшафта и популятор
 TClasslessInstanceHook(void, "?buildSurfaces@OverworldGenerator@@QEAAXAEAUThreadData@1@AEAVBlockVolume@@AEAVLevelChunk@@AEBVChunkPos@@AEBVSurfaceLevelCache@@@Z",
                        struct OverworldGenerator::ThreadData& threadData,
@@ -48,18 +55,24 @@ TClasslessInstanceHook(void, "?buildSurfaces@OverworldGenerator@@QEAAXAEAUThread
     int chunkX = chunkPos.x;
     int chunkZ = chunkPos.z;
 
-    worldGenerator->getRandom()->setSeed((int) 0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed());
-    worldGenerator->generateChunk(chunkManager, chunkX, chunkZ);
+    worldGenerator->getRandom()->setSeed((int)(0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed()));
+    worldGenerator->generateChunk(&chunkManager, chunkX, chunkZ);
 
-    worldGenerator->getRandom()->setSeed((int) 0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed());
-    worldGenerator->populateChunk(chunkManager, chunkX, chunkZ);
+    worldGenerator->getRandom()->setSeed((int)(0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed()));
+    worldGenerator->populateChunk(&chunkManager, chunkX, chunkZ);
+
+    levelChunk.markSaveIfNeverSaved();
 }
 
-//Постпроцессор генератора
-TClasslessInstanceHook(void, "?_prepareStructureBlueprints@OverworldGenerator@@AEAAXAEBVChunkPos@@AEBVBiomeSource@@AEBVIPreliminarySurfaceProvider@@@Z",
-                       ChunkPos const& chunkPos,
-                       class BiomeSource const& biomeSource,
-                       class IPreliminarySurfaceProvider const& wtfProvider) {
+TClasslessInstanceHook(void, "?decorateWorldGenLoadChunk@OverworldGenerator@@MEBAXAEAVBiome@@AEAVLevelChunk@@AEAVBlockVolumeTarget@@AEAVRandom@@AEBVChunkPos@@@Z",
+                       Biome& biome,
+                       LevelChunk& levelChunk,
+                       class BlockVolumeTarget& a2,
+                       class Random& a3,
+                       ChunkPos const& chunkPos) {
 
-    //TODO: postprocessor
+    int x = L2G_COORD(chunkPos.x, -1);
+    int z = L2G_COORD(chunkPos.z, -1);
+
+    //TODO: Транзакции
 }
