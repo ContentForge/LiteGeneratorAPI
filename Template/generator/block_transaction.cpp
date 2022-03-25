@@ -45,10 +45,12 @@ string GEN_API::BlockTransactionElement::encode() {
 }
 
 void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkPos const& chunkPos) {
-    vector<GEN_API::BlockTransactionElement> elements;
-    std::string path = "./worlds/" + levelChunk->getLevel().getCurrentLevelName() + "/transactions/" + chunkPos.x + "." + chunkPos.z;
+    vector <GEN_API::BlockTransactionElement> elements;
+    std::string path =
+            "./worlds/" + levelChunk->getLevel().getCurrentLevelName() + "/transactions/" + to_string(chunkPos.x) +
+            "." + to_string(chunkPos.z);
 
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+    for (const auto &entry: std::filesystem::directory_iterator(path)) {
         std::ifstream transaction(entry.path());
 
         if (transaction.is_open()) {
@@ -61,13 +63,14 @@ void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkP
         std::remove(entry.path().string().c_str());
     }
 
-    for (GEN_API::BlockTransactionElement element: elements)
-        element.tryPlace(levelChunk)
+    for (GEN_API::BlockTransactionElement element: elements){
+        element.tryPlace(levelChunk);
+    }
 }
 
 void GEN_API::createTransactionCache(Level* level, ChunkPos const& chunkPos, vector<GEN_API::BlockTransactionElement> elements) {
     for (GEN_API::BlockTransactionElement element: elements) {
-        std::string path = "./worlds/" + level->getCurrentLevelName() + "/transactions/" + chunkPos.x + "." + chunkPos.z;
+        std::string path = "./worlds/" + level->getCurrentLevelName() + "/transactions/" + to_string(chunkPos.x) + "." + to_string(chunkPos.z);
         std::ifstream itransaction(path);
 
         if (itransaction.is_open()) {
