@@ -72,3 +72,34 @@ void GEN_API::createTransactionCache(Level* level, ChunkPos const& chunkPos, vec
     }
 }
 
+void GEN_API::BlockTransaction::addBlock(int x, short y, int z, Block* block, bool force) {
+    BlockTransactionElement element(x, y, z, block ,force);
+
+    for (GEN_API::ChunkTransactionLink chunk: chunks) {
+        if (chunk.x != G2C_COORD(x) || chunk.z != G2C_COORD(z)) continue;
+
+        chunk.elements.push_back(element);
+        return;
+    }
+
+    chunks.push_back({
+        G2C_COORD(x),
+        G2C_COORD(z),
+        {
+            element,
+        }
+    });
+}
+
+void GEN_API::BlockTransaction::apply(LevelChunk* levelChunk, ChunkPos* chunkPos) {
+    for (auto chunk: chunks) {
+        if (chunk.x != chunkPos->x || chunk.z != chunkPos->z) {
+            GEN_API::createTransactionCache(&(levelChunk->getLevel()), *chunkPos, chunk.elements);
+            continue;
+        }
+
+        for (auto element: chunk.elements) {
+            element.tryPlace(levelChunk);
+        }
+    }
+}

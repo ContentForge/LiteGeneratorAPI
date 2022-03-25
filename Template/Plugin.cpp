@@ -71,8 +71,5 @@ TClasslessInstanceHook(void, "?decorateWorldGenLoadChunk@OverworldGenerator@@MEB
                        class Random& a3,
                        ChunkPos const& chunkPos) {
 
-    int x = L2G_COORD(chunkPos.x, -1);
-    int z = L2G_COORD(chunkPos.z, -1);
-
-    //TODO: Транзакции
+    GEN_API::transactionPostProcessingGeneration(&levelChunk, chunkPos);
 }
