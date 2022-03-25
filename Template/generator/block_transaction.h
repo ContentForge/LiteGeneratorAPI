@@ -1,6 +1,8 @@
 #pragma once
 
 #include "generator_tools.h"
+#include <fstream>
+#include <filesystem>
 
 
 namespace GEN_API {

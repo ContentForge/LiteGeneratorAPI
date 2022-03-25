@@ -7,13 +7,14 @@
 #include <MC/Player.hpp>
 #include <MC/ItemStack.hpp>
 #include <LLAPI.h>
+#include <Utils/FileHelper.h>
 #include "generator/my_generator.h"
 
 Logger logger("BetterNetherGeneration");
 GEN_API::WorldGenerator* worldGenerator = new CursedGenerator(12345);
 
 void PluginInit() {
-
+    CreateDirs("./worlds/" + Level::getCurrentLevelName() + "/transactions");
 }
 
 //Отмена стандартной генерации поверхностей
