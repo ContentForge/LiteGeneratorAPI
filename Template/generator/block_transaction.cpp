@@ -46,29 +46,44 @@ string GEN_API::BlockTransactionElement::encode() {
 
 void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkPos const& chunkPos) {
     vector<GEN_API::BlockTransactionElement> elements;
-    /*
-     * TODO: Получение всех элементов и удаление файла с транзакцией
-     * Если файл не найден или дан пустой файл, то ничего не делать.
-     *
-     * Файл жолжен быть по пути: ПАПКА_СЕРВЕРА/worlds/{levelChunk->getLevel().getCurrentLevelName()}/transactions/{chunkPos.x}:{chunkPos.z}
-     */
+    std::string path = "./worlds/" + levelChunk->getLevel().getCurrentLevelName() + "/transactions/" + chunkPos.x + "." + chunkPos.z;
 
-    for (GEN_API::BlockTransactionElement element: elements) {
-        element.tryPlace(levelChunk);
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        std::ifstream transaction(entry.path());
+
+        if (transaction.is_open()) {
+            std::string line;
+            while (std::getline(transaction, line))
+                elements.push_back(BlockTransactionElement(line));
+        }
+
+        transaction.close();
+        std::remove(entry.path().string().c_str());
     }
+
+    for (GEN_API::BlockTransactionElement element: elements)
+        element.tryPlace(levelChunk)
 }
 
 void GEN_API::createTransactionCache(Level* level, ChunkPos const& chunkPos, vector<GEN_API::BlockTransactionElement> elements) {
     for (GEN_API::BlockTransactionElement element: elements) {
-        /*
-         * TODO: Запись элементов транзакции в файл
-         * Запись должна быть дополняющая чтобы предыдущие эелементы не удалялись.
-         * Каждый элемент должен быть записан с новой строки
-         *
-         * Функция для сериализации элемента: element.encode()
-         *
-         * Файл жолжен быть по пути: ПАПКА_СЕРВЕРА/worlds/{level->getCurrentLevelName()}/transactions/{chunkPos.x}:{chunkPos.z}
-         */
+        std::string path = "./worlds/" + level->getCurrentLevelName() + "/transactions/" + chunkPos.x + "." + chunkPos.z;
+        std::ifstream itransaction(path);
+
+        if (itransaction.is_open()) {
+            std::string line;
+            std::string content;
+
+            while (std::getline(itransaction, line))
+                content.insert(content.length(), line + "\n");
+
+            content.insert(content.length(), element.encode());
+            std::ofstream otransaction(path);
+            otransaction << content;
+        }
+        else {
+            std::ofstream otransaction(path);
+            otransaction << element.encode();
+        }
     }
 }
-
