@@ -7,6 +7,7 @@
 #include <MC/BlockVolume.hpp>
 #include <MC/Level.hpp>
 #include <MC/LevelChunk.hpp>
+#include <MC/Biome.hpp>
 #include <MC/ChunkBlockPos.hpp>
 #include <MC/OverworldGenerator.hpp>
 
@@ -47,21 +48,55 @@ namespace GEN_API {
             delete chunkPos;
         }
 
-        int getDimentionId();
+        int getDimentionId() const {
+            return 0;
+        }
 
-        short getMinY();
+        short getMinY() const {
+            return 0;
+        }
 
-        short getMaxY();
+        short getMaxY() const {
+            return 383;
+        }
 
-        Block const& setBlockAt(int x, int y, int z, Block const* block);
+        void setBlockAt(int x, int y, int z, string stringId) const {
+            levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *Block::create(stringId, 0));
+        }
 
-        Block const& getBlockAt(int x, int y, int z);
+        void setBlockAt(int x, int y, int z, string stringId, unsigned short tileData) const {
+            levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *Block::create(stringId, tileData));
+        }
 
-        int getHighestBlockAt(int x, int z);
+        void setBlockAt(int x, int y, int z, Block const* block) const {
+            levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *block);
+        }
 
-        void setBiomeAt(int x, int z, Biome* biome);
+        const Block & setBlockAndGetAt(int x, int y, int z, Block const* block) const {
+            ChunkBlockPos pos(G2L_COORD(x), (short) y, G2L_COORD(z));
+            levelChunk->setBlockSimple(pos, *block);
+            return levelChunk->getBlock(pos);
+        }
 
-        Biome const& getBiomeAt(int x, int z);
+        Block const& getBlockAt(int x, int y, int z) const {
+            return levelChunk->getBlock(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)));
+        }
+
+        int getHighestBlockAt(int x, int z) const {
+            return levelChunk->getTopRainBlockPos(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z))).y;
+        }
+
+        void setBiomeAt(int x, int z, Biome* biome) const {
+            levelChunk->setBiome2d(*biome, ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
+        }
+
+        Biome const& getBiomeAt(int x, int z) const {
+            return levelChunk->getBiome(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
+        }
+
+        Level& getLevel() const {
+            return levelChunk->getLevel();
+        }
     };
 
     class Random {
@@ -192,11 +227,11 @@ namespace GEN_API {
             return random;
         }
 
-        virtual void generateChunk(GEN_API::ChunkManager const& world, int chunkX, int chunkZ) {
+        virtual void generateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
 
         }
 
-        virtual void populateChunk(GEN_API::ChunkManager const& world, int chunkX, int chunkZ) {
+        virtual void populateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
 
         }
     };
