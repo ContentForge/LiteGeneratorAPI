@@ -58,7 +58,7 @@ void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkP
                 elements.push_back(BlockTransactionElement(line));
     }
     transaction.close();
-    std::remove(path);
+    std::remove(path.c_str());
 
     for (GEN_API::BlockTransactionElement element: elements){
         element.tryPlace(levelChunk);
