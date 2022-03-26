@@ -50,18 +50,15 @@ void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkP
             "/transactions/" + to_string(chunkPos.x) +
             "." + to_string(chunkPos.z);
 
-    for (const auto &entry: std::filesystem::directory_iterator(path)) { //FIXIT
-        std::ifstream transaction(entry.path());
-
-        if (transaction.is_open()) {
-            std::string line;
-            while (std::getline(transaction, line))
+    std::ifstream transaction(path);
+    if (transaction.is_open()) {
+        std::string line;
+        while (std::getline(transaction, line))
+            if (line != "")
                 elements.push_back(BlockTransactionElement(line));
-        }
-
-        transaction.close();
-        std::remove(entry.path().string().c_str());
     }
+    transaction.close();
+    std::remove(path);
 
     for (GEN_API::BlockTransactionElement element: elements){
         element.tryPlace(levelChunk);
