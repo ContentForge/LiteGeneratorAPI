@@ -1,13 +1,4 @@
 #include "pch.h"
-#include <EventAPI.h>
-#include <LoggerAPI.h>
-#include <MC/Level.hpp>
-#include <MC/Block.hpp>
-#include <MC/BlockSource.hpp>
-#include <MC/Player.hpp>
-#include <MC/ItemStack.hpp>
-#include <LLAPI.h>
-#include <Utils/FileHelper.h>
 #include "generator/my_generator.h"
 
 Logger logger("BetterNetherGeneration");

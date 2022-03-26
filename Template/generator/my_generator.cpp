@@ -1,6 +1,4 @@
 #include "my_generator.h"
-#include <cmath>
-#include <LoggerAPI.h>
 
 #define SCALE 500.0f
 #define WORLD_HIGH 60
@@ -46,7 +44,6 @@ void CursedGenerator::generateChunk(GEN_API::ChunkManager const* world, int chun
             for (short y = world->getMinY(); y < yMax; y++) {
                 world->setBlockAt(xc, y, zc, high[xc][zc] < y? VanillaBlocks::mStillLava : VanillaBlocks::mNetherrack);
             }
-            //world->setBlockAt(xc, yMax, zc, "shizotoaster:sacrifice_table");
         }
     }
 }

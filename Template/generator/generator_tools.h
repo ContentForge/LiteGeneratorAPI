@@ -1,15 +1,6 @@
 #pragma once
+#include "pch.h"
 
-#include <MC/Block.hpp>
-#include <MC/VanillaBlocks.hpp>
-#include <MC/VanillaDimensions.hpp>
-#include <MC/VanillaBiomes.hpp>
-#include <MC/BlockVolume.hpp>
-#include <MC/Level.hpp>
-#include <MC/LevelChunk.hpp>
-#include <MC/Biome.hpp>
-#include <MC/ChunkBlockPos.hpp>
-#include <MC/OverworldGenerator.hpp>
 
 #define C2G_COORD(chunkCoord) (chunkCoord << 4)
 #define G2C_COORD(coord) (coord >> 4)
