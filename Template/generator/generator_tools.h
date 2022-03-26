@@ -97,6 +97,14 @@ namespace GEN_API {
         Level& getLevel() const {
             return levelChunk->getLevel();
         }
+
+        LevelChunk* getLevelChunk() const {
+            return levelChunk;
+        }
+
+        ChunkPos* getChunkPos() const {
+            return chunkPos;
+        }
     };
 
     class Random {

@@ -14,7 +14,7 @@ Logger logger("BetterNetherGeneration");
 GEN_API::WorldGenerator* worldGenerator = new CursedGenerator(12345);
 
 void PluginInit() {
-    CreateDirs("./worlds/" + Level::getCurrentLevelName() + "/transactions");
+    std::filesystem::create_directories(Level::getCurrentLevelPath() + "/transactions");
 }
 
 //Отмена стандартной генерации поверхностей

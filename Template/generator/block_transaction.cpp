@@ -46,11 +46,11 @@ string GEN_API::BlockTransactionElement::encode() {
 
 void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkPos const& chunkPos) {
     vector <GEN_API::BlockTransactionElement> elements;
-    std::string path =
-            "./worlds/" + levelChunk->getLevel().getCurrentLevelName() + "/transactions/" + to_string(chunkPos.x) +
+    std::string path = Level::getCurrentLevelPath() +
+            "/transactions/" + to_string(chunkPos.x) +
             "." + to_string(chunkPos.z);
 
-    for (const auto &entry: std::filesystem::directory_iterator(path)) {
+    for (const auto &entry: std::filesystem::directory_iterator(path)) { //FIXIT
         std::ifstream transaction(entry.path());
 
         if (transaction.is_open()) {
@@ -68,9 +68,11 @@ void GEN_API::transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkP
     }
 }
 
-void GEN_API::createTransactionCache(Level* level, ChunkPos const& chunkPos, vector<GEN_API::BlockTransactionElement> elements) {
+void GEN_API::createTransactionCache(ChunkPos const& chunkPos, vector<GEN_API::BlockTransactionElement> elements) {
     for (GEN_API::BlockTransactionElement element: elements) {
-        std::string path = "./worlds/" + level->getCurrentLevelName() + "/transactions/" + to_string(chunkPos.x) + "." + to_string(chunkPos.z);
+        std::string path = Level::getCurrentLevelPath() +
+                "/transactions/" + to_string(chunkPos.x) +
+                "." + to_string(chunkPos.z);
         std::ifstream itransaction(path);
 
         if (itransaction.is_open()) {
@@ -91,8 +93,8 @@ void GEN_API::createTransactionCache(Level* level, ChunkPos const& chunkPos, vec
     }
 }
 
-void GEN_API::BlockTransaction::addBlock(int x, short y, int z, Block* block, bool force) {
-    BlockTransactionElement element(x, y, z, block ,force);
+void GEN_API::BlockTransaction::addBlock(int x, short y, int z, string blockId, unsigned short tileData, bool force) {
+    GEN_API::BlockTransactionElement element(x, y, z, blockId, tileData,force);
 
     for (GEN_API::ChunkTransactionLink chunk: chunks) {
         if (chunk.x != G2C_COORD(x) || chunk.z != G2C_COORD(z)) continue;
@@ -113,7 +115,7 @@ void GEN_API::BlockTransaction::addBlock(int x, short y, int z, Block* block, bo
 void GEN_API::BlockTransaction::apply(LevelChunk* levelChunk, ChunkPos* chunkPos) {
     for (auto chunk: chunks) {
         if (chunk.x != chunkPos->x || chunk.z != chunkPos->z) {
-            GEN_API::createTransactionCache(&(levelChunk->getLevel()), *chunkPos, chunk.elements);
+            GEN_API::createTransactionCache(*chunkPos, chunk.elements);
             continue;
         }
 

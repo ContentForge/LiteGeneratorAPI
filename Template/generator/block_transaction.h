@@ -3,6 +3,7 @@
 #include "generator_tools.h"
 #include <fstream>
 #include <filesystem>
+#include <utility>
 
 
 namespace GEN_API {
@@ -18,12 +19,12 @@ namespace GEN_API {
     public:
         BlockTransactionElement(string encoded);
 
-        BlockTransactionElement(int x, short y, int z, Block* block, bool forcePlace) {
+        BlockTransactionElement(int x, short y, int z, string blockId, unsigned short tileData, bool forcePlace) {
             localX = G2L_COORD(x);
             localY = y;
             localZ = G2L_COORD(z);
-            blockId = block->getTypeName();
-            tileData = block->getTileData();
+            this->blockId = "" + blockId;
+            this->tileData = tileData;
             placeIsNotFree = forcePlace;
         }
 
@@ -34,7 +35,7 @@ namespace GEN_API {
 
     void transactionPostProcessingGeneration(LevelChunk* levelChunk, ChunkPos const& chunkPos);
 
-    void createTransactionCache(Level* level, ChunkPos const& chunkPos, vector<BlockTransactionElement> elements);
+    void createTransactionCache(ChunkPos const& chunkPos, vector<BlockTransactionElement> elements);
 
     struct ChunkTransactionLink {
         int x;
@@ -50,26 +51,30 @@ namespace GEN_API {
             chunks = vector<ChunkTransactionLink>();
         }
 
-        void addBlock(int x, short y, int z, Block* block) {
+        void addBlock(int x, short y, int z, Block const* block) {
             addBlock(x, y, z, block, true);
         }
 
-        void addBlock(int x, short y, int z, Block* block, bool force);
+        void addBlock(int x, short y, int z, Block const* block, bool force) {
+            addBlock(x, y, z, block->getTypeName(), 0, force);
+        }
 
         void addBlock(int x, short y, int z, string blockId) {
-            addBlock(x, y, z, blockId, true);
+            addBlock(x, y, z, std::move(blockId), true);
         }
 
         void addBlock(int x, short y, int z, string blockId, bool force) {
-            addBlock(x, y, z, blockId, 0, force);
+            addBlock(x, y, z, std::move(blockId), 0, force);
         }
 
         void addBlock(int x, short y, int z, string blockId, unsigned short tileData) {
-            addBlock(x, y, z, blockId, tileData, true);
+            addBlock(x, y, z, std::move(blockId), tileData, true);
         }
 
-        void addBlock(int x, short y, int z, string blockId, unsigned short tileData, bool force) {
-            addBlock(x, y, z, Block::create(blockId, tileData), force);
+        void addBlock(int x, short y, int z, string blockId, unsigned short tileData, bool force);
+
+        void apply(ChunkManager const* chunkManager) {
+            apply(chunkManager->getLevelChunk(), chunkManager->getChunkPos());
         }
 
         void apply(LevelChunk* levelChunk, ChunkPos* chunkPos);
