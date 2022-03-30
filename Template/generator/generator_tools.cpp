@@ -198,7 +198,7 @@ float GEN_API::Simplex::getNoise3D(float x, float y, float z) {
     float y0 = y - (j - t);
     float z0 = z - (k - t);
 
-    int i1, j1, k1, i2, j2, k2;
+    char i1, j1, k1, i2, j2, k2;
     if (x0 >= y0) {
         if (y0 >= z0) {
             i1 = 1;
@@ -247,7 +247,6 @@ float GEN_API::Simplex::getNoise3D(float x, float y, float z) {
         }
     }
 
-
     float x1 = x0 - i1 + G3;
     float y1 = y0 - j1 + G3;
     float z1 = z0 - k1 + G3;
@@ -258,35 +257,35 @@ float GEN_API::Simplex::getNoise3D(float x, float y, float z) {
     float y3 = y0 - 1.0f + 3.0f * G3;
     float z3 = z0 - 1.0f + 3.0f * G3;
 
-    int ii = i & 255;
-    int jj = j & 255;
-    int kk = k & 255;
+    short ii = i & 255;
+    short jj = j & 255;
+    short kk = k & 255;
 
     float n = 0;
     float ti;
 
     ti = 0.6f - x0 * x0 - y0 * y0 - z0 * z0;
-    if (ti > 0) {
-        const short index = perm[ii + perm[jj + perm[kk]]] % 12;
-        n += m_t4(ti) * (GEN_API::SIMPLEX_GRAD3[index][0] * x0 + GEN_API::SIMPLEX_GRAD3[index][1] * y0 + GEN_API::SIMPLEX_GRAD3[index][2] * z0);
+    if(ti > 0){
+        auto gi0 = SIMPLEX_GRAD3[perm[ii + perm[jj + perm[kk]]] % 12];
+        n += ti * ti * ti * ti * (gi0[0] * x0 + gi0[1] * y0 + gi0[2] * z0);
     }
 
-    ti = 0.6f - x1 * x1 - y1 * y1 + z1 * z1;
-    if (ti > 0) {
-        const short index = perm[ii + i1 + perm[jj + j1 + perm[kk + k1]]] % 12;
-        n += m_t4(ti) * (GEN_API::SIMPLEX_GRAD3[index][0] * x1 + GEN_API::SIMPLEX_GRAD3[index][1] * y1 + GEN_API::SIMPLEX_GRAD3[index][2] * z1);
+    ti = 0.6f - x1 * x1 - y1 * y1 - z1 * z1;
+    if(ti > 0){
+        auto gi1 = SIMPLEX_GRAD3[perm[ii + i1 + perm[jj + j1 + perm[kk + k1]]] % 12];
+        n += ti * ti * ti * ti * (gi1[0] * x1 + gi1[1] * y1 + gi1[2] * z1);
     }
 
-    ti = 0.6f - x2 * x2 - y2 * y2 + z2 * z2;
-    if (ti > 0) {
-        const short index = perm[ii + i2 + perm[jj + j2 + perm[kk + k2]]] % 12;
-        n += m_t4(ti) * (GEN_API::SIMPLEX_GRAD3[index][0] * x2 + GEN_API::SIMPLEX_GRAD3[index][1] * y2 + GEN_API::SIMPLEX_GRAD3[index][2] * z2);
+    ti = 0.6f - x2 * x2 - y2 * y2 - z2 * z2;
+    if(ti > 0){
+        auto gi2 = SIMPLEX_GRAD3[perm[ii + i2 + perm[jj + j2 + perm[kk + k2]]] % 12];
+        n += ti * ti * ti * ti * (gi2[0] * x2 + gi2[1] * y2 + gi2[2] * z2);
     }
 
-    ti = 0.6f - x3 * x3 - y3 * y3 + z3 * z3;
-    if (ti > 0) {
-        const short index = perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]] % 12;
-        n += m_t4(ti) * (GEN_API::SIMPLEX_GRAD3[index][0] * x3 + GEN_API::SIMPLEX_GRAD3[index][1] * y3 + GEN_API::SIMPLEX_GRAD3[index][2] * z3);
+    ti = 0.6f - x3 * x3 - y3 * y3 - z3 * z3;
+    if(ti > 0){
+        auto gi3 = SIMPLEX_GRAD3[perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]] % 12];
+        n += ti * ti * ti * ti * (gi3[0] * x3 + gi3[1] * y3 + gi3[2] * z3);
     }
 
     return 32.0f * n;
