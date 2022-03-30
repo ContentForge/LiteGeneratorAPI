@@ -6,10 +6,19 @@
 
 Logger dLogger("DEBUG");
 
+enum BlockIterType {
+    Nothing,
+    Air,
+    Top,
+    Land,
+    TopAndLand,
+    Lava,
+    Block,
+};
+
 void CursedGenerator::generateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
     vector<BiomeMapNode> biomeMap = generateBiomeMap(chunkX, chunkZ);
     short high[16][16];
-
     for (char xc = 0; xc < 16; xc++) {
         int x = L2G_COORD(chunkX, xc);
         for (char zc = 0; zc < 16; zc++) {
@@ -36,32 +45,74 @@ void CursedGenerator::generateChunk(GEN_API::ChunkManager const* world, int chun
         }
     }
 
+    bool land[16][16];
     for (char xc = 0; xc < 16; xc++) {
+        int x = L2G_COORD(chunkX, xc);
         for (char zc = 0; zc < 16; zc++) {
+            int z = L2G_COORD(chunkZ, zc);
             int yMax = high[xc][zc];
             if (yMax < WORLD_HIGH - 6) yMax = WORLD_HIGH - 6;
 
-            for (short y = world->getMinY(); y < yMax; y++) {
-                world->setBlockAt(xc, y, zc, high[xc][zc] < y? VanillaBlocks::mStillLava : VanillaBlocks::mNetherrack);
+            BlockIterType iter = Nothing;
+            for (short y = world->getMinY(); y <= yMax; y++) {
+                //Фильтры
+                int preY = y - 1;
+                //TODO: Применение фильтров. Пример ниже для наглядности работы
+                switch (iter) {
+                    case Land:
+                        world->setBlockAt(x, preY, z, VanillaBlocks::mObsidian);
+                        break;
+
+                    case Top:
+                        world->setBlockAt(x, preY, z, VanillaBlocks::mRedstoneBlock);
+                        break;
+
+                    case TopAndLand:
+                        world->setBlockAt(x, preY, z, VanillaBlocks::mGoldBlock);
+                        break;
+                }
+
+                //Ландшафт
+                if (y == yMax) continue;
+
+                float caveNoise = simplex->getNoise2D(-x / 25.0f, -z / 25.0f) * 3;
+                if (y + caveNoise< WORLD_HIGH - 2) caveNoise = 1.0f;
+                else caveNoise = abs(simplex->getNoise3D(x / 35.0f, y / 25.0f, z / 35.0f));
+                if (caveNoise < 0.30f * (simplex->getNoise2D(z / 100.0f, x / 100.f) + 1) / 2.0f) {
+                    if (iter == Block || iter == Top) iter = Land;
+                    else iter = Air;
+                    continue;
+                }
+
+                if (high[xc][zc] < y) {
+                    world->setBlockAt(x, y, z, VanillaBlocks::mStillLava);
+                    iter = Lava;
+                } else {
+                    world->setBlockAt(x, y, z, VanillaBlocks::mNetherrack);
+                    if (iter == Air) iter = Top;
+                    else iter = Block;
+                    high[xc][zc] = y;
+                }
+
+                if (y == yMax - 1){
+                    if (iter == Lava) {
+                        land[xc][zc] = false;
+
+                    } else {
+                        land[xc][zc] = true;
+                        if (iter == Block) iter = Land;
+                        else if (iter == Top) iter = TopAndLand;
+                    }
+                }
             }
         }
     }
+
+    //TODO: Действия с поверхностью
 }
 
 void CursedGenerator::populateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
-    GEN_API::BlockTransaction transaction;
 
-    transaction.addBlock(L2G_COORD(chunkX, -1),
-                         70,
-                         L2G_COORD(chunkZ, -1),
-                         VanillaBlocks::mGlowStone);
-
-    transaction.addBlock(L2G_COORD(chunkX, 16),
-                         71,
-                         L2G_COORD(chunkZ, 16),
-                         VanillaBlocks::mRedstoneBlock);
-
-    transaction.apply(world);
 }
 
 vector<BiomeMapNode> CursedGenerator::generateBiomeMap(int chunkX, int chunkZ) {
