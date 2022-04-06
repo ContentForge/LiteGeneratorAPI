@@ -13,6 +13,8 @@ file(GLOB_RECURSE SRC_FILES_DIR
         ${PROJECT_SOURCE_DIR}/Template/*.h
         ${PROJECT_SOURCE_DIR}/generator/*.h
         ${PROJECT_SOURCE_DIR}/generator/*.cpp
+        ${PROJECT_SOURCE_DIR}/Template/lua/*.h
+        ${PROJECT_SOURCE_DIR}/Template/lua/*.hpp
         )
 
 include_directories(SDK/Header)
@@ -34,7 +36,14 @@ add_link_options(
         /MANIFESTUAC:NO /OPT:ICF /ERRORREPORT:PROMPT /NOLOGO /DELAYLOAD:"bedrock_server.dll" /TLBID:1
 )
 
-add_library(TemplatePlugin SHARED ${SRC_FILES_DIR})
+add_library(TemplatePlugin SHARED ${SRC_FILES_DIR}
+        Template/generator/generator_manager.h
+        Template/generator/generator_manager.cpp
+        Template/lua/lauxlib.h
+        Template/lua/lua.h
+        Template/lua/lua.hpp
+        Template/lua/luaconf.h
+        Template/lua/lualib.h)
 
 add_custom_command(TARGET TemplatePlugin PRE_BUILD
         COMMAND cmd /c ${PROJECT_SOURCE_DIR}/prepareLib.cmd ${PROJECT_SOURCE_DIR}

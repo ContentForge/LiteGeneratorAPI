@@ -1,10 +1,11 @@
 #include "pch.h"
-#include "generator/my_generator.h"
+#include "generator/generator_manager.h"
 
 Logger logger("BetterNetherGeneration");
-GEN_API::WorldGenerator* worldGenerator = new CursedGenerator(12345);
+GEN_API::WorldGenerator* worldGenerator;
 
 void PluginInit() {
+    worldGenerator = GEN_LUA::init(1234);
     std::filesystem::create_directories(Level::getCurrentLevelPath() + "/transactions");
 }
 

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 #include <utility>
+#include <filesystem>
 #include <Global.h>
 #include <EventAPI.h>
 #include <LoggerAPI.h>
