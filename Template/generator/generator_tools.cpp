@@ -2,7 +2,6 @@
 
 #define m_t4(val) (val * val * val * val)
 #define STR_TO_INT(val) (std::atoi(val.c_str()))
-#define DELIMITER "|"
 
 using std::to_string;
 
@@ -55,45 +54,6 @@ float GEN_API::Random::nextSignedFloat() {
 
 bool GEN_API::Random::nextBool() {
     return (nextInt() & 0x01) == 0;
-}
-
-float GEN_API::linearLerp(float x, float x1, float x2, float q0, float q1) {
-    return ((x2 - x) / (x2 - x1)) * q0 + ((x - x1) / (x2 - x1)) * q1;
-}
-
-float GEN_API::bilineatLerp(float x, float y, float q00, float q01, float q10, float q11, float x1, float x2, float y1, float y2) {
-    float dx1 = (x2 - x) / (x2 - x1);
-    float dx2 = (x - x1) / (x2 - x1);
-
-    return ((y2 - y) / (y2 - y1)) * (
-                dx1 * q00 + dx2 * q10
-            ) + ((y - y1) / (y2 - y1)) * (
-                dx1 * q01 + dx2 * q11
-            );
-}
-
-float GEN_API::trilinearLerp(float x, float y, float z, float q000, float q001, float q010, float q011, float q100,
-                             float q101, float q110, float q111, float x1, float x2, float y1, float y2, float z1,
-                             float z2) {
-
-    float dx1 = (x2 - x) / (x2 - x1);
-    float dx2 = (x - x1) / (x2 - x1);
-    float dy1 = (y2 - y) / (y2 - y1);
-    float dy2 = (y - y1) / (y2 - y1);
-
-    return ((z2 - z) / (z2 - z1)) * (
-                dy1 * (
-                    dx1 * q000 + dx2 * q100
-                ) + dy2 * (
-                    dx1 * q001 + dx2 * q101
-                )
-            ) + ((z - z1) / (z2 - z1)) * (
-                dy1 * (
-                    dx1 * q010 + dx2 * q110
-                ) + dy2 * (
-                    dx1 * q011 + dx2 * q111
-                )
-            );
 }
 
 float GEN_API::Noise::noise2D(float x, float z, bool normalized) {

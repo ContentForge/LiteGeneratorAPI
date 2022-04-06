@@ -22,6 +22,9 @@
 #define F3 (1.0f / 3.0f)
 #define G3 (1.0f / 6.0f)
 
+#define WORLD_MIN_Y 0
+#define WORLD_MAX_Y 383
+
 
 namespace GEN_API {
     class ChunkManager {
@@ -39,18 +42,6 @@ namespace GEN_API {
             delete chunkPos;
         }
 
-        int getDimentionId() const {
-            return 0;
-        }
-
-        short getMinY() const {
-            return 0;
-        }
-
-        short getMaxY() const {
-            return 383;
-        }
-
         void setBlockAt(int x, int y, int z, string stringId) const {
             levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *Block::create(stringId, 0));
         }
@@ -61,12 +52,6 @@ namespace GEN_API {
 
         void setBlockAt(int x, int y, int z, Block const* block) const {
             levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *block);
-        }
-
-        const Block & setBlockAndGetAt(int x, int y, int z, Block const* block) const {
-            ChunkBlockPos pos(G2L_COORD(x), (short) y, G2L_COORD(z));
-            levelChunk->setBlockSimple(pos, *block);
-            return levelChunk->getBlock(pos);
         }
 
         Block const& getBlockAt(int x, int y, int z) const {
@@ -137,17 +122,6 @@ namespace GEN_API {
             {1, 0, 1}, {-1, 0, 1}, {1, 0, -1}, {-1, 0, -1},
             {0, 1, 1}, {0, -1, 1}, {0, 1, -1}, {0, -1, -1}
     };
-
-    float linearLerp(float x, float x1, float x2, float q0, float q1);
-
-    float bilineatLerp(float x, float y,
-                       float q00, float q01, float q10, float q11,
-                       float x1, float x2, float y1, float y2);
-
-    float trilinearLerp(float x, float y, float z,
-                        float q000, float q001, float q010, float q011,
-                        float q100, float q101, float q110, float q111,
-                        float x1, float x2, float y1, float y2, float z1, float z2);
 
     class Noise {
     protected:
@@ -227,10 +201,6 @@ namespace GEN_API {
         }
 
         virtual void generateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
-
-        }
-
-        virtual void populateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
 
         }
     };

@@ -51,9 +51,6 @@ TClasslessInstanceHook(void, "?buildSurfaces@OverworldGenerator@@QEAAXAEAUThread
     worldGenerator->getRandom()->setSeed((int)(0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed()));
     worldGenerator->generateChunk(&chunkManager, chunkX, chunkZ);
 
-    worldGenerator->getRandom()->setSeed((int)(0xdeadbeef ^ (chunkX << 8) ^ chunkZ ^ worldGenerator->getSeed()));
-    worldGenerator->populateChunk(&chunkManager, chunkX, chunkZ);
-
     levelChunk.markSaveIfNeverSaved();
 }
 
