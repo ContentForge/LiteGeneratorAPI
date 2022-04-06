@@ -76,42 +76,63 @@ void GEN_LUA::CustomGenerator::generateChunk(const GEN_API::ChunkManager *world,
 
 int GEN_LUA::lua_setBlockAt(lua_State* state) {
     // function setBlockAt(x, y, z, blockId)  end
+    int x = lua_tonumber(L, 1);
+    short y = lua_tonumber(L, 2);
+    int z = lua_tonumber(L, 3);
+    string blockId = lua_tostring(L, 4);
 
+    //TODO
     return 0;
 }
 
 int GEN_LUA::lua_getBlockAt(lua_State* state) {
     // function getBlockAt(x, y, z)  end
+    int x = lua_tonumber(L, 1);
+    short y = lua_tonumber(L, 2);
+    int z = lua_tonumber(L, 3);
 
+    //TODO
     return 1;
 }
 
 int GEN_LUA::lua_setBiomeAt(lua_State* state) {
     // function setBiomeAt(x, z, biomeId)  end
+    int x = lua_tonumber(L, 1);
+    int z = lua_tonumber(L, 2);
+    string biomeId = lua_tostring(L, 3);
 
+    //TODO
     return 0;
 }
 
 int GEN_LUA::lua_getBiomeAt(lua_State* state) {
     // function getBiomeAt(x, z)  end
+    int x = lua_tonumber(L, 1);
+    int z = lua_tonumber(L, 2);
 
+    //TODO
     return 1;
 }
 
 int GEN_LUA::lua_getMinY(lua_State* state) {
     // function getMinY()  end
 
+    lua_pushnumber(L, WORLD_MIN_Y);
     return 1;
 }
 
 int GEN_LUA::lua_getMaxY(lua_State* state) {
     // function getMaxY()  end
 
+    lua_pushnumber(L, WORLD_MAX_Y);
     return 1;
 }
 
 int GEN_LUA::lua_getHighestBlockAt(lua_State* state) {
     // function getHighestBlockAt(x, z)  end
+    int x = lua_tonumber(L, 1);
+    int z = lua_tonumber(L, 2);
 
+    //TODO
     return 1;
 }
