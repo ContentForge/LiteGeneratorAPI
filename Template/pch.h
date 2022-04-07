@@ -27,4 +27,14 @@
 #include <MC/ChunkBlockPos.hpp>
 #include <MC/OverworldGenerator.hpp>
 
+extern "C" {
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
+}
+
+#ifdef _WIN32
+#pragma comment(lib, "liblua54.a")
+#endif
+
 #endif //PCH_H

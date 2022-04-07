@@ -1,21 +1,9 @@
 #pragma once
 
-#include <utility>
-
 #include "pch.h"
 #include "generator_tools.h"
 
 #define fs std::filesystem
-
-extern "C" {
-    #include "lua/lua.h"
-    #include "lua/lauxlib.h"
-    #include "lua/lualib.h"
-}
-
-#ifdef _WIN32
-    #pragma comment(lib, "liblua54.a")
-#endif
 
 
 namespace GEN_LUA {
