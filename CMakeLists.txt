@@ -15,6 +15,8 @@ file(GLOB_RECURSE SRC_FILES_DIR
         ${PROJECT_SOURCE_DIR}/generator/*.cpp
         ${PROJECT_SOURCE_DIR}/Template/lua/*.h
         ${PROJECT_SOURCE_DIR}/Template/lua/*.hpp
+        ${PROJECT_SOURCE_DIR}/Template/LuaBridge/*.h
+        ${PROJECT_SOURCE_DIR}/Template/LuaBridge/detail/*.h
         )
 
 include_directories(SDK/Header)
