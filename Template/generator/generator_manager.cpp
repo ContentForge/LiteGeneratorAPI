@@ -1,21 +1,89 @@
 #include "generator_manager.h"
 
+#include <utility>
+
+using namespace luabridge;
+using namespace luabridge::detail;
+
 
 Logger genLogger("GEN_LUA");
 lua_State* L;
+std::mutex chunkGeneratorMutex;
+GEN_API::ChunkManager* currentChunkManager;
 
+class WrapperRandom {
+private:
+    bool newState;
 
-void initFunctions() {
+public:
+    GEN_API::Random* random;
+
+    WrapperRandom(int seed) {
+        random = new GEN_API::Random(seed);
+        newState = true;
+    }
+
+    WrapperRandom(GEN_API::Random* random) {
+        this->random = random;
+        newState = false;
+    }
+
+    ~WrapperRandom() {
+        if (newState) delete random;
+    }
+
+    int nextInt() {
+        return random->nextInt();
+    }
+
+    int nextIntBound(int bound) {
+        return random->nextInt(bound);
+    }
+
+    int nextIntRange(int min, int max) {
+        return random->nextInt(min, max);
+    }
+
+    bool nextBool() {
+        return random->nextBool();
+    }
+
+    float nextFloat() {
+        return random->nextFloat();
+    }
+
+    float nextSignedFloat() {
+        return random->nextSignedFloat();
+    }
+};
+
+void initChunkFunctions(lua_State* state) {
+    getGlobalNamespace(state).beginNamespace("world")
+        .addFunction("setBlockAt", GEN_LUA::lua_setBlockAt)
+        .addFunction("getBlockAt", GEN_LUA::lua_getBlockAt)
+        .addFunction("setBiomeAt", GEN_LUA::lua_setBiomeAt)
+        .addFunction("getBiomeAt", GEN_LUA::lua_getBiomeAt)
+        .addFunction("getHighestBlockAt", GEN_LUA::lua_getHighestBlockAt)
+        .endNamespace();
+}
+
+void initFunctions(lua_State* state) {
     //chunk manager
-    lua_register(L, "setBlockAt", GEN_LUA::lua_setBlockAt);
-    lua_register(L, "getBlockAt", GEN_LUA::lua_getBlockAt);
-    lua_register(L, "setBiomeAt", GEN_LUA::lua_setBiomeAt);
-    lua_register(L, "getBiomeAt", GEN_LUA::lua_getBiomeAt);
-    lua_register(L, "getMinY", GEN_LUA::lua_getMinY);
-    lua_register(L, "getMaxY", GEN_LUA::lua_getMaxY);
-    lua_register(L, "getHighestBlockAt", GEN_LUA::lua_getHighestBlockAt);
+    getGlobalNamespace(state).beginNamespace("world")
+            .addConstant("MIN_Y", WORLD_MIN_Y)
+            .addConstant("MAX_Y", WORLD_MAX_Y)
+            .endNamespace();
 
-    //TODO: random
+    getGlobalNamespace(L)
+        .beginClass<WrapperRandom>("Random")
+                .addConstructor<void(*)(int)>()
+                .addFunction("nextInt", &WrapperRandom::nextInt)
+                .addFunction("nextIntBound", &WrapperRandom::nextIntBound)
+                .addFunction("nextIntRange", &WrapperRandom::nextIntRange)
+                .addFunction("nextBool", &WrapperRandom::nextBool)
+                .addFunction("nextFloat", &WrapperRandom::nextFloat)
+                .addFunction("nextSignedFloat", &WrapperRandom::nextSignedFloat)
+        .endClass();
 
     //TODO: simplex
 
@@ -24,19 +92,17 @@ void initFunctions() {
 
 
 GEN_API::WorldGenerator* handleScript(int seed) {
-    lua_getglobal(L, "onInit");
-    if (!lua_isfunction(L, -1)) {
+    LuaRef onInitFunc = getGlobal(L, "onInit");
+    if (!onInitFunc.isFunction()) {
         throw GEN_LUA::AdapterException("Function `onInit(seed)` is not defined");
     }
 
-    lua_getglobal(L, "generateChunk");
-    if (!lua_isfunction(L, -1)) {
-        throw GEN_LUA::AdapterException("Function `generateChunk(world, chunkX, chunkZ)` is not defined");
+    LuaRef generateChunkFunc = getGlobal(L, "generateChunk");
+    if (!generateChunkFunc.isFunction()) {
+        throw GEN_LUA::AdapterException("Function `generateChunk(chunkX, chunkZ, rand)` is not defined");
     }
 
     GEN_API::WorldGenerator* generator = new GEN_LUA::CustomGenerator(seed);
-    initFunctions();
-    //TODO: Генерация класса
 
     return generator;
 }
@@ -64,75 +130,56 @@ GEN_API::WorldGenerator* GEN_LUA::init(int seed) {
 
         generator = new GEN_API::WorldGenerator(seed);
     }
+    return generator;
 }
 
 void GEN_LUA::onInit(CustomGenerator* generator) {
+    initFunctions(L);
 
+    try {
+        LuaRef func = getGlobal(L, "onInit");
+        func(generator->getSeed());
+    } catch (LuaException const& ex) {
+        genLogger.error(ex.what());
+    }
 }
 
-void GEN_LUA::CustomGenerator::generateChunk(const GEN_API::ChunkManager *world, int chunkX, int chunkZ) {
+void GEN_LUA::CustomGenerator::generateChunk(GEN_API::ChunkManager *world, int chunkX, int chunkZ) {
+    chunkGeneratorMutex.lock();
+    currentChunkManager = world;
+    clock_t time = clock();
 
+    initChunkFunctions(L);
+
+    try {
+        LuaRef func = getGlobal(L, "generateChunk");
+        func(chunkX, chunkZ);
+    } catch (LuaException const& ex) {
+        genLogger.error(ex.what());
+    }
+
+    std::cout << clock() - time << std::endl;
+
+    currentChunkManager = nullptr;
+    chunkGeneratorMutex.unlock();
 }
 
-int GEN_LUA::lua_setBlockAt(lua_State* state) {
-    // function setBlockAt(x, y, z, blockId)  end
-    int x = lua_tonumber(L, 1);
-    short y = lua_tonumber(L, 2);
-    int z = lua_tonumber(L, 3);
-    string blockId = lua_tostring(L, 4);
+void GEN_LUA::lua_setBlockAt(int x, int y, int z, std::string const& blockId) {
+    currentChunkManager->setBlockAt(x, y, z, blockId);
+}
 
+std::string GEN_LUA::lua_getBlockAt(int x, int y, int z) {
+    return currentChunkManager->getBlockAt(x, y, z).getTypeName();
+}
+
+void GEN_LUA::lua_setBiomeAt(int x, int z, int biomeId) {
     //TODO
-    return 0;
 }
 
-int GEN_LUA::lua_getBlockAt(lua_State* state) {
-    // function getBlockAt(x, y, z)  end
-    int x = lua_tonumber(L, 1);
-    short y = lua_tonumber(L, 2);
-    int z = lua_tonumber(L, 3);
-
-    //TODO
-    return 1;
+int GEN_LUA::lua_getBiomeAt(int x, int z) {
+    return 0; //TODO
 }
 
-int GEN_LUA::lua_setBiomeAt(lua_State* state) {
-    // function setBiomeAt(x, z, biomeId)  end
-    int x = lua_tonumber(L, 1);
-    int z = lua_tonumber(L, 2);
-    string biomeId = lua_tostring(L, 3);
-
-    //TODO
-    return 0;
-}
-
-int GEN_LUA::lua_getBiomeAt(lua_State* state) {
-    // function getBiomeAt(x, z)  end
-    int x = lua_tonumber(L, 1);
-    int z = lua_tonumber(L, 2);
-
-    //TODO
-    return 1;
-}
-
-int GEN_LUA::lua_getMinY(lua_State* state) {
-    // function getMinY()  end
-
-    lua_pushnumber(L, WORLD_MIN_Y);
-    return 1;
-}
-
-int GEN_LUA::lua_getMaxY(lua_State* state) {
-    // function getMaxY()  end
-
-    lua_pushnumber(L, WORLD_MAX_Y);
-    return 1;
-}
-
-int GEN_LUA::lua_getHighestBlockAt(lua_State* state) {
-    // function getHighestBlockAt(x, z)  end
-    int x = lua_tonumber(L, 1);
-    int z = lua_tonumber(L, 2);
-
-    //TODO
-    return 1;
+int GEN_LUA::lua_getHighestBlockAt(int x, int z) {
+    return currentChunkManager->getHighestBlockAt(x, z);
 }

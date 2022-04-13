@@ -31,54 +31,65 @@ namespace GEN_API {
     private:
         LevelChunk* levelChunk;
         ChunkPos* chunkPos;
+        short** heightMap;
 
     public:
         ChunkManager(LevelChunk& levelChunk, ChunkPos const& chunkPos) {
             this->levelChunk = &levelChunk;
             this->chunkPos = new ChunkPos(chunkPos.x, chunkPos.z);
+
+            heightMap = (short**) malloc(16 * sizeof(short*));
+            for (char x = 0; x < 16; x++) {
+                heightMap[x] = (short*) calloc(16, sizeof(short));
+            }
         }
 
         ~ChunkManager() {
             delete chunkPos;
+            for (char x = 0; x < 16; x++) free(heightMap[x]);
+            free(heightMap);
         }
 
-        void setBlockAt(int x, int y, int z, string stringId) const {
+        void setBlockAt(int x, int y, int z, string const& stringId) {
+            if(heightMap[x & 0xF][z & 0xF] < y) heightMap[x & 0xF][z & 0xF] = (short) y;
             levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *Block::create(stringId, 0));
         }
 
-        void setBlockAt(int x, int y, int z, string stringId, unsigned short tileData) const {
+        void setBlockAt(int x, int y, int z, string const& stringId, unsigned short tileData) {
+            if(heightMap[x & 0xF][z & 0xF] < y) heightMap[x & 0xF][z & 0xF] = (short) y;
             levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *Block::create(stringId, tileData));
         }
 
-        void setBlockAt(int x, int y, int z, Block const* block) const {
+        void setBlockAt(int x, int y, int z, Block const* block) {
+            if(heightMap[x & 0xF][z & 0xF] < y) heightMap[x & 0xF][z & 0xF] = (short) y;
             levelChunk->setBlockSimple(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)), *block);
         }
 
-        Block const& getBlockAt(int x, int y, int z) const {
+        Block const& getBlockAt(int x, int y, int z) {
             return levelChunk->getBlock(ChunkBlockPos(G2L_COORD(x), (short) y, G2L_COORD(z)));
         }
 
-        int getHighestBlockAt(int x, int z) const {
-            return levelChunk->getTopRainBlockPos(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z))).y;
+        int getHighestBlockAt(int x, int z) {
+            return heightMap[x & 0xF][z & 0xF];
         }
 
-        void setBiomeAt(int x, int z, Biome* biome) const {
+        void setBiomeAt(int x, int z, Biome* biome) {
             levelChunk->setBiome2d(*biome, ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
         }
 
-        Biome const& getBiomeAt(int x, int z) const {
+        Biome const& getBiomeAt(int x, int z) {
             return levelChunk->getBiome(ChunkBlockPos(G2L_COORD(x), 0, G2L_COORD(z)));
         }
 
-        Level& getLevel() const {
+        Level& getLevel() {
             return levelChunk->getLevel();
         }
 
-        LevelChunk* getLevelChunk() const {
+        LevelChunk* getLevelChunk() {
             return levelChunk;
         }
 
-        ChunkPos* getChunkPos() const {
+        ChunkPos* getChunkPos() {
             return chunkPos;
         }
     };
@@ -200,7 +211,7 @@ namespace GEN_API {
             return random;
         }
 
-        virtual void generateChunk(GEN_API::ChunkManager const* world, int chunkX, int chunkZ) {
+        virtual void generateChunk(GEN_API::ChunkManager* world, int chunkX, int chunkZ) {
 
         }
     };
@@ -271,7 +282,7 @@ namespace GEN_API {
 
         void addBlock(int x, short y, int z, string blockId, unsigned short tileData, bool force);
 
-        void apply(ChunkManager const* chunkManager) {
+        void apply(ChunkManager* chunkManager) {
             apply(chunkManager->getLevelChunk(), chunkManager->getChunkPos());
         }
 

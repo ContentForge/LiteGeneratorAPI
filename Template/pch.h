@@ -27,5 +27,6 @@
 #include <MC/ChunkBlockPos.hpp>
 #include <MC/OverworldGenerator.hpp>
 #include "LuaBridge/LuaBridge.h"
+#include "LuaBridge/detail/Userdata.h"
 
 #endif //PCH_H

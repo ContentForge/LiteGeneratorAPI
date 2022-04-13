@@ -32,15 +32,16 @@ namespace GEN_LUA {
             onInit(this);
         }
 
-        void generateChunk(const GEN_API::ChunkManager *world, int chunkX, int chunkZ) override;
+        void generateChunk(GEN_API::ChunkManager* world, int chunkX, int chunkZ) override;
     };
 
-    int lua_setBlockAt(lua_State* state);
-    int lua_getBlockAt(lua_State* state);
-    int lua_setBiomeAt(lua_State* state);
-    int lua_getBiomeAt(lua_State* state);
-    int lua_getMinY(lua_State* state);
-    int lua_getMaxY(lua_State* state);
-    int lua_getHighestBlockAt(lua_State* state);
+    void lua_setBlockAt(int x, int y, int z, std::string const& blockId);
 
+    std::string lua_getBlockAt(int x, int y, int z);
+
+    void lua_setBiomeAt(int x, int z, int biomeId);
+
+    int lua_getBiomeAt(int x, int z);
+
+    int lua_getHighestBlockAt(int x, int z);
 }
